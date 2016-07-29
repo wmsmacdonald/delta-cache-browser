@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/wmsmacdonald/delta-cache-browser#readme",
   "devDependencies": {
+    "delta-cache-express": "^0.1.0",
     "express": "^4.14.0",
     "gulp": "^3.9.1",
     "gulp-rename": "^1.2.2",

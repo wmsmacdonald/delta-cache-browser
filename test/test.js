@@ -1,12 +1,21 @@
 'use strict';
 
-const express = require('express');
-const open = require('open');
 const https = require('https');
 const fs = require('fs');
 
+const express = require('express');
+const DeltaCache = require('delta-cache-express');
+const open = require('open');
+
+let deltaCache = DeltaCache();
+
 let app = express();
 app.use(express.static('test/public'));
+
+app.use('/dynamicContent', (req, res, next) => {
+  res.local.responseBody = new Date.toString();
+  next();
+}, deltaCache);
 
 let options = {
   key: fs.readFileSync('./ssl/test_key.pem'),
