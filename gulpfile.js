@@ -16,8 +16,10 @@ function compileClientJavascripts(cb) {
   pump([
     gulp.src('./src/delta_cache_ws.js'),
     gulp.dest('dist/'),
+    gulp.dest('test/public/'),
     minifier({}, uglify),
     rename('delta_cache_ws.min.js'),
-    gulp.dest('dist/')
+    gulp.dest('dist/'),
+    gulp.dest('test/public/')
   ], cb);
 }

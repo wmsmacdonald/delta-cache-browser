@@ -58,6 +58,10 @@ self.onfetch = function(event) {
   )
 };
 
+self.addEventListener('message', function() {
+  console.log('message');
+});
+
 // takes a response with a patch in the body and applies the patch to the other response and returns a
 // promise resolving to a new response
 function patchResponse(patchResponse, response) {

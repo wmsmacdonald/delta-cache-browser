@@ -1,0 +1,46 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Mocha Tests</title>
+    <link href="https://cdn.rawgit.com/mochajs/mocha/2.2.5/mocha.css" rel="stylesheet" />
+</head>
+<body>
+<div id="mocha"></div>
+
+<script src="https://cdn.rawgit.com/jquery/jquery/2.1.4/dist/jquery.min.js"></script>
+<script src="https://cdn.rawgit.com/Automattic/expect.js/0.3.1/index.js"></script>
+<script src="https://cdn.rawgit.com/mochajs/mocha/2.2.5/mocha.js"></script>
+
+<script>mocha.setup('bdd')</script>
+<script src="test.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('delta_cache_ws.js').then(function(registration) {
+        if (registration.active === null) {
+            //location.reload();
+        }
+        console.log(':^)', registration);
+
+    setInterval(getDynamic, 5000);
+
+    }).catch(function(err) {
+        console.log(':^(', err);
+    });
+}
+else {
+    console.log('service worker not supported');
+}
+
+function getDynamic() {
+    /*$.ajax('https://localhost:8000/dynamic.html').then((response, status, jqXHR) => {
+        console.log(response);
+    });*/
+}
+
+
+mocha.checkLeaks();
+mocha.globals(['jQuery']);
+mocha.run();
+</script>
+</body>
+</html>
