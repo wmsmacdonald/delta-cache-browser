@@ -1,0 +1,37 @@
+{
+  "name": "delta-cache-browser",
+  "version": "0.1.0",
+  "description": "Service worker that provides worry-free support for HTTP delta caching",
+  "main": "dist/delta_cache_ws.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wmsmacdonald/delta-cache-browser.git"
+  },
+  "keywords": [
+    "encoding",
+    "diff",
+    "googlediffjson",
+    "change",
+    "caching"
+  ],
+  "author": "William MacDonald",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wmsmacdonald/delta-cache-browser/issues"
+  },
+  "homepage": "https://github.com/wmsmacdonald/delta-cache-browser#readme",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^1.5.4",
+    "gulp-watch": "^4.3.9",
+    "pump": "^1.0.1",
+    "uglify-js-harmony": "^2.6.2"
+  }
+}

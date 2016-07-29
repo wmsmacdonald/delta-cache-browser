@@ -1,9 +1,9 @@
 var gulp = require('gulp');
-var babel = require('gulp-babel');
 var watch = require('gulp-watch');
-var webpack = require('gulp-webpack');
-var uglify = require('gulp-uglify');
+var uglify = require('uglify-js-harmony');
+var minifier = require('gulp-uglify/minifier');
 var rename = require('gulp-rename');
+var pump = require('pump');
 
 gulp.task('client-compile-watcher', function() {
   compileClientJavascripts();
@@ -12,18 +12,12 @@ gulp.task('client-compile-watcher', function() {
 
 gulp.task('client-compile', compileClientJavascripts);
 
-function compileClientJavascripts() {
-  gulp.src('./src/index.js')
-    .pipe(webpack({
-      output: {
-        filename: 'websocket_relay.js'
-      }
-    }))
-    .pipe(babel({ presets: ['es2015'] }))
-    .pipe(gulp.dest('dist/'))
-    .pipe(gulp.dest('tests/public/'))
-    .pipe(uglify())
-    .pipe(rename('delta_cache.min.js'))
-    .pipe(gulp.dest('dist/'))
-    .pipe(gulp.dest('tests/public/'))
+function compileClientJavascripts(cb) {
+  pump([
+    gulp.src('./src/delta_cache_ws.js'),
+    gulp.dest('dist/'),
+    minifier({}, uglify),
+    rename('delta_cache_ws.min.js'),
+    gulp.dest('dist/')
+  ], cb);
 }

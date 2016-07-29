@@ -15,6 +15,8 @@ self.addEventListener('activate', function(event) {
   );
 });
 
+let hello = 'sdfadf';
+
 self.onfetch = function(event) {
   event.respondWith(
     caches.open('test').then(function(cache) {
