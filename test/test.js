@@ -13,7 +13,7 @@ let app = express();
 app.use(express.static('test/public'));
 
 app.use('/dynamicContent', (req, res, next) => {
-  res.local.responseBody = new Date.toString();
+  res.locals.responseBody = new Date.toString();
   next();
 }, deltaCache);
 
