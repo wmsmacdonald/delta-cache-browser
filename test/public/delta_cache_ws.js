@@ -39,7 +39,6 @@ self.onfetch = function(event) {
     return fetch(new Request(event.request, init));
 
   }).then(serverResponse => {
-    console.log(serverResponse.status);
     // server sent a patch (rather than the full file)
     if (serverResponse.status === 226 && serverResponse.headers.get('Delta-Base') ===  cachedEtag) {
       // use the patch on the cached file to create an updated response
@@ -47,16 +46,23 @@ self.onfetch = function(event) {
     }
     // no change from cached version
     else if (serverResponse.status === 304) {
-      return Promise.resolve(cachedResponse);
+      return cachedResponse.blob().then(blob => {
+        return new Response(blob, {
+          status: 304,
+          statusText: 'No Modified',
+          headers: cloneHeaders(serverResponse.headers)
+        });
+      });
+
     }
     // normal non-cached response
     else {
       return Promise.resolve(serverResponse);
     }
-  }).then(response => {
-    printHeaders(response.headers);
-    cacheIfHasEtag(cache, event.request, response.clone());
-    return response;
+  }).then(finalResponse => {
+    console.log(finalResponse.status);
+    cacheIfHasEtag(cache, event.request, finalResponse.clone());
+    return Promise.resolve(finalResponse);
   });
   event.respondWith(responseP);
 };
@@ -68,7 +74,7 @@ function patchResponse(patchResponse, response) {
     let updatedBody = diff.patch_apply(patch, responseBody)[0];
     return new Response(updatedBody, {
       status: 226,
-      statusText: 'Delta Changed',
+      statusText: 'IM Used',
       headers: cloneHeaders(patchResponse.headers)
     });
   });

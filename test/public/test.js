@@ -17,9 +17,9 @@ else {
 
 function getDynamic() {
   $.ajax('http://localhost:8080/dynamicContent').then(function(response, status, jqXHR) {
-    console.log('got response');
-    console.log(response);
+    console.log(jqXHR.status, jqXHR.statusText);
     console.log(jqXHR.getAllResponseHeaders());
+    console.log(response);
   });
 }
 
