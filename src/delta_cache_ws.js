@@ -16,58 +16,61 @@ self.addEventListener('activate', function(event) {
 });
 
 self.onfetch = function(event) {
-  event.respondWith(
-    caches.open('delta').then(function(cache) {
+  let cache;
+  let cachedEtag;
+  let cachedResponse;
 
-      return cache.match(event.request).then(function(cacheResponse) {
-        // request not cached
-        if (cacheResponse === undefined) {
-          let responseP = fetch(event.request.url);
-          responseP.then(cacheIfDelta.bind(null, cache, event.request));
-          return responseP;
-        }
-        else {
-          console.log('requesting delta');
-          let etag = cacheResponse.headers.get('ETag');
+  let responseP = caches.open('delta').then(function(matchingCache) {
+    cache = matchingCache;
+    return cache.match(event.request);
 
-          // attach version of file to request
-          let serverRequestP = fetch(new Request(event.request, {
-            headers: {
-              'If-None-Match': etag
-            }
-          }));
+  }).then(response => {
+    cachedResponse = response;
 
-          return serverRequestP.then(serverResponse => {
-            // server sent a patch (rather than the full file)
-            if (serverResponse.status === 226 && serverResponse.headers.get('Delta-Base') ===  etag) {
-              console.log('got delta');
-              // use the patch on the cached file to create an updated response
-              return patchResponse(serverResponse, cacheResponse).then(patchedResponse => {
-                cacheIfDelta(cache, event.request, patchedResponse.clone());
-                return patchedResponse;
-              });
-            }
-            else {
-              cacheIfDelta(cache, event.request, serverResponse.clone());
-              return serverResponse;
-            }
-          });
-        }
-      })
-    })
-  )
+    let init = {};
+    // request not cached
+    if (cachedResponse !== undefined && event.request.mode !== 'navigate') {
+      cachedEtag = cachedResponse.headers.get('ETag');
+      init.headers = {
+        'A-IM': 'googlediffjson',
+        'If-None-Match': cachedEtag
+      }
+    }
+    return fetch(new Request(event.request, init));
+
+  }).then(serverResponse => {
+    console.log(serverResponse.status);
+    // server sent a patch (rather than the full file)
+    if (serverResponse.status === 226 && serverResponse.headers.get('Delta-Base') ===  cachedEtag) {
+      // use the patch on the cached file to create an updated response
+      return patchResponse(serverResponse, cachedResponse);
+    }
+    // no change from cached version
+    else if (serverResponse.status === 304) {
+      return Promise.resolve(cachedResponse);
+    }
+    // normal non-cached response
+    else {
+      return Promise.resolve(serverResponse);
+    }
+  }).then(response => {
+    printHeaders(response.headers);
+    cacheIfHasEtag(cache, event.request, response.clone());
+    return response;
+  });
+  event.respondWith(responseP);
 };
-
-self.addEventListener('message', function() {
-  console.log('message');
-});
 
 // takes a response with a patch in the body and applies the patch to the other response and returns a
 // promise resolving to a new response
 function patchResponse(patchResponse, response) {
   return Promise.all([patchResponse.json(), response.text()]).then(([patch, responseBody]) => {
     let updatedBody = diff.patch_apply(patch, responseBody)[0];
-    return changeResponseBody(response, updatedBody);
+    return new Response(updatedBody, {
+      status: 226,
+      statusText: 'Delta Changed',
+      headers: cloneHeaders(patchResponse.headers)
+    });
   });
 }
 
@@ -81,9 +84,8 @@ function changeResponseBody(response, body) {
 }
 
 // cache the request/response if response contains the Delta-Version header
-function cacheIfDelta(cache, request, response) {
+function cacheIfHasEtag(cache, request, response) {
   if (response.headers.has('ETag')) {
-    console.log('caching');
     return cache.put(request, response.clone());
   }
 }
@@ -97,7 +99,11 @@ function cloneHeaders(headers) {
   return headersClone;
 }
 
-
+function printHeaders(headers) {
+  for (let [name, value] of headers.entries()) {
+    console.log(name + ': ' + value);
+  }
+}
 
 /**
  * Diff Match and Patch

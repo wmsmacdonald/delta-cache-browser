@@ -5,9 +5,9 @@ var minifier = require('gulp-uglify/minifier');
 var rename = require('gulp-rename');
 var pump = require('pump');
 
-gulp.task('client-compile-watcher', function() {
-  compileClientJavascripts();
-  watch('./src/*', compileClientJavascripts)
+gulp.task('client-compile-watcher', function(cb) {
+  compileClientJavascripts(cb);
+  watch('./src/delta_cache_ws.js', compileClientJavascripts)
 });
 
 gulp.task('client-compile', compileClientJavascripts);
