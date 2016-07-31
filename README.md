@@ -4,7 +4,7 @@ Partially cache dynamic content and send only the changes over the wire.
 
 When used with dynamic content, [delta encoding can provide 62%-65% savings for HTML files](http://www.webreference.com/internet/software/servers/http/deltaencoding/intro/printversion.html).
 
-There's no need to change any of your requests - simply include the following code and the service worker will automatically intercept requets and use delta caching in available.
+There's no need to change any of your requests - simply include the following code and the service worker will automatically intercept requests and use delta caching in available.
 
 ```javascript
 // install the service worker if service workers are supported
