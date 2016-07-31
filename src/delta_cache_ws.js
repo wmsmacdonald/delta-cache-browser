@@ -31,7 +31,6 @@ self.onfetch = function(event) {
     // request not cached
     if (cachedResponse !== undefined && event.request.mode !== 'navigate') {
       cachedEtag = cachedResponse.headers.get('ETag');
-      console.log(cachedEtag);
       init.headers = {
         'A-IM': 'googlediffjson',
         'If-None-Match': cachedEtag
@@ -67,10 +66,8 @@ self.onfetch = function(event) {
     }
   }).then(response => {
     finalResponse = response;
-    printHeaders(finalResponse.headers);
     return cacheIfHasEtag(cache, event.request, finalResponse.clone());
   }).then(() => {
-    console.log('finished caching');
     return finalResponse;
   });
   event.respondWith(responseP);
@@ -85,7 +82,6 @@ function patchResponse(patchResponse, response) {
     let headers = cloneHeaders(patchResponse.headers);
     headers.set('Content-Type', response.headers.get('Content-Type'));
     headers.delete('Content-Length');
-    //printHeaders(headers);
 
     return new Response(updatedBody, {
       status: 200,

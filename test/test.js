@@ -22,20 +22,24 @@ app.get('/dynamicContent', (req, res, next) => {
     res.locals.responseBody = 'version 2';
     tick = true;
   }
-  console.log(req.url, res.locals.responseBody);
+  console.log('GET', req.url);
+  console.log(res.locals.responseBody);
   next();
 }, deltaCache);
 
 app.get('/staticContent', (req, res, next) => {
   res.locals.responseBody = 'single response';
-  console.log(req.url, res.locals.responseBody);
+  console.log('GET', req.url);
+  console.log(res.locals.responseBody);
   next();
 }, deltaCache);
 
-/*let options = {
-  key: fs.readFileSync('./ssl/test_key.pem'),
-  cert: fs.readFileSync('./ssl/test_cert.pem')
-};*/
+app.get('/noDelta', (req, res) => {
+  console.log('GET', req.url);
+  console.log('single response');
+  res.send('single response');
+});
+
 
 let server = app.listen(8080, (err) => {
   open('http://localhost:8080/test.html');

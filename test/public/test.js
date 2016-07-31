@@ -42,10 +42,18 @@ describe('delta_cache_ws.js', function() {
     });
   });
 
-  describe('#indexOf()', function() {
-    it('should return -1 when the value is not present', function() {
-      expect([1,2,3].indexOf(5)).to.eql(-1);
-      expect([1,2,3].indexOf(0)).to.eql(-1);
+  describe('no delta content', function() {
+    it('should return correct content', function(done) {
+      $.get('/staticContent').then((responseBody, _, xhrRequest) => {
+        expect(responseBody).to.be('single response');
+        //console.log(xhrRequest);
+        return $.get('/staticContent');
+      }).then((responseBody, _, xhrRequest) => {
+        expect(responseBody).to.be('single response');
+        done();
+      }).catch(err => {
+        done(err);
+      });
     });
   });
 });
