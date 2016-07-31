@@ -1,5 +1,4 @@
 'use strict';
-
 const diff = new diff_match_patch();
 
 self.addEventListener('install', function(event) {
@@ -19,6 +18,7 @@ self.onfetch = function(event) {
   let cache;
   let cachedEtag;
   let cachedResponse;
+  let finalResponse;
 
   let responseP = caches.open('delta').then(function(matchingCache) {
     cache = matchingCache;
@@ -31,6 +31,7 @@ self.onfetch = function(event) {
     // request not cached
     if (cachedResponse !== undefined && event.request.mode !== 'navigate') {
       cachedEtag = cachedResponse.headers.get('ETag');
+      console.log(cachedEtag);
       init.headers = {
         'A-IM': 'googlediffjson',
         'If-None-Match': cachedEtag
@@ -46,11 +47,16 @@ self.onfetch = function(event) {
     }
     // no change from cached version
     else if (serverResponse.status === 304) {
-      return cachedResponse.blob().then(blob => {
-        return new Response(blob, {
-          status: 304,
-          statusText: 'No Modified',
-          headers: cloneHeaders(serverResponse.headers)
+      return cachedResponse.text().then(text => {
+        let headers = cloneHeaders(serverResponse.headers);
+        headers.set('Content-Type', cachedResponse.headers.get('Content-Type'));
+        headers.delete('Content-Length');
+
+        return new Response(text, {
+          status: 200,
+          statusText: 'OK',
+          headers: headers,
+          url: serverResponse.url
         });
       });
 
@@ -59,12 +65,16 @@ self.onfetch = function(event) {
     else {
       return Promise.resolve(serverResponse);
     }
-  }).then(finalResponse => {
-    console.log(finalResponse.status);
-    cacheIfHasEtag(cache, event.request, finalResponse.clone());
-    return Promise.resolve(finalResponse);
+  }).then(response => {
+    finalResponse = response;
+    printHeaders(finalResponse.headers);
+    return cacheIfHasEtag(cache, event.request, finalResponse.clone());
+  }).then(() => {
+    console.log('finished caching');
+    return finalResponse;
   });
   event.respondWith(responseP);
+  return responseP;
 };
 
 // takes a response with a patch in the body and applies the patch to the other response and returns a
@@ -72,27 +82,26 @@ self.onfetch = function(event) {
 function patchResponse(patchResponse, response) {
   return Promise.all([patchResponse.json(), response.text()]).then(([patch, responseBody]) => {
     let updatedBody = diff.patch_apply(patch, responseBody)[0];
-    return new Response(updatedBody, {
-      status: 226,
-      statusText: 'IM Used',
-      headers: cloneHeaders(patchResponse.headers)
-    });
-  });
-}
+    let headers = cloneHeaders(patchResponse.headers);
+    headers.set('Content-Type', response.headers.get('Content-Type'));
+    headers.delete('Content-Length');
+    //printHeaders(headers);
 
-// creates a new Response with the given body
-function changeResponseBody(response, body) {
-  return new Response(body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: response.headers
+    return new Response(updatedBody, {
+      status: 200,
+      statusText: 'OK',
+      headers: headers,
+      url: patchResponse.url
+    });
   });
 }
 
 // cache the request/response if response contains the Delta-Version header
 function cacheIfHasEtag(cache, request, response) {
   if (response.headers.has('ETag')) {
-    return cache.put(request, response.clone());
+    return cache.delete(request).then(() => {
+      return cache.put(request, response.clone());
+    });
   }
 }
 

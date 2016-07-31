@@ -5,16 +5,15 @@
     <link href="https://cdn.rawgit.com/mochajs/mocha/2.2.5/mocha.css" rel="stylesheet" />
 </head>
 <body>
+<a href="javascript:window.open('','_self').close();">close</a>
 <div id="mocha"></div>
 
-<script src="https://cdn.rawgit.com/jquery/jquery/2.1.4/dist/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.0.js" integrity="sha256-slogkvB1K3VOkzAI8QITxV3VzpOnkeNVsKvtkYLMjfk=" crossorigin="anonymous"></script>
 <script src="https://cdn.rawgit.com/Automattic/expect.js/0.3.1/index.js"></script>
 <script src="https://cdn.rawgit.com/mochajs/mocha/2.2.5/mocha.js"></script>
 
-<!--<script>mocha.setup('bdd')</script>-->
+<script>mocha.setup('bdd')</script>
 <script src="test.js"></script>
-<script>
-
-</script>
+<script src="mocha_driver.js"></script>
 </body>
 </html>
