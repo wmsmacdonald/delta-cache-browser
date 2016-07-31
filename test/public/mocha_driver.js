@@ -14,20 +14,23 @@ if ('serviceWorker' in navigator) {
     else {
       mocha.run(() => {
         // uninstall service worker so it can be installed clean next time
-        registration.unregister().then(function(success) {
+        registration.unregister().then(success => {
           if (!success) {
-            throw new Error('could not unregister service worker');
+            document.write('could not unregister service worker');
+          }
+          return caches.delete('delta');
+        }).then(success => {
+          if (!success) {
+            document.write('could not delete delta cache');
           }
         });
       });
     }
-
-    //setInterval(getDynamic, 5000);
 
   }).catch(function(err) {
     document.write('service worker failed to register')
   });
 }
 else {
-  console.log('service worker not supported');
+  document.write('service worker not supported');
 }

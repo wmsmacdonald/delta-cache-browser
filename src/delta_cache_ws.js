@@ -3,15 +3,12 @@ const diff = new diff_match_patch();
 
 self.addEventListener('install', function(event) {
   self.skipWaiting();
-  console.log('Installed', event);
 });
 self.addEventListener('activate', function(event) {
-  console.log('Activated', event);
-
   // cleans cache every time the service worker is initialized
-  event.waitUntil(
+  /*event.waitUntil(
     caches.delete('delta')
-  );
+  );*/
 });
 
 self.onfetch = function(event) {
