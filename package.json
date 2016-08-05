@@ -2,7 +2,7 @@
   "name": "delta-cache-browser",
   "version": "0.1.0",
   "description": "Service worker that provides worry-free support for HTTP delta caching",
-  "main": "dist/delta_cache_ws.js",
+  "main": "lib/sw_delta_cache.js",
   "directories": {
     "test": "test"
   },
@@ -36,5 +36,8 @@
     "open": "0.0.5",
     "pump": "^1.0.1",
     "uglify-js-harmony": "^2.6.2"
+  },
+  "dependencies": {
+    "diff-match-patch": "^1.0.0"
   }
 }
