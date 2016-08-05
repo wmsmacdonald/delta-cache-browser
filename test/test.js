@@ -7,7 +7,7 @@ const express = require('express');
 const DeltaCache = require('delta-cache-express');
 const open = require('open');
 
-let deltaCache = DeltaCache();
+let deltaCache = new DeltaCache();
 
 let app = express();
 app.use(express.static('test/public'));

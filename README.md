@@ -9,7 +9,7 @@ There's no need to change any of your requests - simply include the following co
 ```javascript
 // install the service worker if service workers are supported
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('delta_cache_ws.js').then(function(registration) {
+  navigator.serviceWorker.register('delta_cache_sw.js').then(function(registration) {
     console.log('delta cache service worker registered');
   }).catch(err => {
     console.log('service worker failed to register');

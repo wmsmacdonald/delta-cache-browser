@@ -4,7 +4,7 @@
 mocha.globals(['jQuery']);
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('delta_cache_ws.js').then(function(registration) {
+  navigator.serviceWorker.register('delta_cache_sw.js').then(function(registration) {
     //window.serviceWorkerRegistration = registration;
 
     // document must reload for requests to go through service worker

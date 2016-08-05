@@ -9,7 +9,7 @@ function getDynamic() {
 }
 
 
-describe('delta_cache_ws.js', function() {
+describe('delta_cache_sw.js', function() {
 
   describe('dynamic content', function() {
     it('should return correct content', function(done) {

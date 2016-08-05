@@ -35,7 +35,8 @@
     "gulp-watch": "^4.3.9",
     "open": "0.0.5",
     "pump": "^1.0.1",
-    "uglify-js-harmony": "^2.6.2"
+    "uglify-js-harmony": "^2.6.2",
+    "gulp-webpack": "^1.5.0"
   },
   "dependencies": {
     "diff-match-patch": "^1.0.0"
