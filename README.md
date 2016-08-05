@@ -6,13 +6,13 @@ When used with dynamic content, [delta encoding can provide 62%-65% savings for 
 
 There's no need to change any of your requests - simply include the following code and the service worker will automatically intercept requests and use delta caching if available.
 
+### Usage
 ```javascript
-// install the service worker if service workers are supported
+// register the service worker if service workers are supported
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('delta_cache_sw.js').then(function(registration) {
+  // register the service worker (will activate with document reload)
+  navigator.serviceWorker.register('delta_cache_sw.js').then(function() {
     console.log('delta cache service worker registered');
-  }).catch(err => {
-    console.log('service worker failed to register');
   });
 }
 ```
