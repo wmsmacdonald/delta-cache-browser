@@ -60,6 +60,8 @@
 	});
 
 	self.onfetch = function(event) {
+	  let clientRequest = event.request;
+
 	  let cache;
 	  let cachedEtag;
 	  let cachedResponse;
@@ -72,16 +74,25 @@
 	  }).then(response => {
 	    cachedResponse = response;
 
-	    let init = {};
+	    let parsedRequestUrl = getLocation(clientRequest.url);
+	    let parsedScope = getLocation(self.registration.scope);
+
+	    let init;
+
 	    // request not cached
-	    if (cachedResponse !== undefined && event.request.mode !== 'navigate') {
+	    //if (cachedResponse !== undefined && event.request.mode !== 'navigate') {
+	    if (cachedResponse !== undefined
+	      && parsedRequestUrl.host === parsedScope.host
+	      && parsedRequestUrl.protocol === parsedScope.protocol) {
 	      cachedEtag = cachedResponse.headers.get('ETag');
+	      init = {};
 	      init.headers = {
 	        'A-IM': 'googlediffjson',
 	        'If-None-Match': cachedEtag
-	      }
+	      };
 	    }
-	    return fetch(new Request(event.request, init));
+
+	    return fetch(clientRequest, init);
 
 	  }).then(serverResponse => {
 	    // server sent a patch (rather than the full file)
@@ -159,6 +170,19 @@
 	  for (let [name, value] of headers.entries()) {
 	    console.log(name + ': ' + value);
 	  }
+	}
+
+	function getLocation(href) {
+	  var match = href.match(/^(https?\:)\/\/(([^:\/?#]*)(?:\:([0-9]+))?)(\/[^?#]*)(\?[^#]*|)(#.*|)$/);
+	  return match && {
+	      protocol: match[1],
+	      host: match[2],
+	      hostname: match[3],
+	      port: match[4],
+	      pathname: match[5],
+	      search: match[6],
+	      hash: match[7]
+	    }
 	}
 
 /***/ },

@@ -40,6 +40,13 @@ app.get('/noDelta', (req, res) => {
   res.send('single response');
 });
 
+app.get('/dynamicPage', (req, res, next) => {
+  res.locals.responseBody = new Date().toString();
+  next();
+}, deltaCache, (req, res) => {
+  console.log(res.statusCode);
+});
+
 
 let server = app.listen(8080, (err) => {
   open('http://localhost:8080/test.html');
