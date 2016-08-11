@@ -19,5 +19,4 @@ if ('serviceWorker' in navigator) {
 
 If service workers are not supported, it will fallback to normal browser control.
 
-Designed to work with [delta-cache-express](https://github.com/wmsmacdonald/delta-cache-express), but it semi-complies with [RFC 3229](https://tools.ietf.org/html/rfc3229). The exceptions (may be changed in future releases):
-* The only IM (instance manipulation) available is `googlediffjson`, which is encoded by JSON stringified patches returned from the [google-diff-match-patch algorithm](https://code.google.com/p/google-diff-match-patch/wiki/API).
+Designed to work with [delta-cache-express](https://github.com/wmsmacdonald/delta-cache-express), but it complies with any [RFC 3229](https://tools.ietf.org/html/rfc3229) compliant server. The encoding used for the deltas is `googlediffjson`, JSON stringified patches returned from the [google-diff-match-patch algorithm](https://code.google.com/p/google-diff-match-patch/wiki/API).
