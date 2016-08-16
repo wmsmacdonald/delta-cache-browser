@@ -71,29 +71,43 @@
 	    cache = matchingCache;
 	    return cache.match(event.request);
 
+	  // send a request to server
 	  }).then(response => {
+
 	    cachedResponse = response;
 
-	    let parsedRequestUrl = getLocation(clientRequest.url);
-	    let parsedScope = getLocation(self.registration.scope);
+	    let isSameOrigin = sameOrigin(clientRequest.url, self.registration.scope);
 
-	    let init;
+	    // request cached and has same origin
+	    if (isSameOrigin && cachedResponse !== undefined) {
 
-	    // request not cached
-	    //if (cachedResponse !== undefined && event.request.mode !== 'navigate') {
-	    if (cachedResponse !== undefined
-	      && parsedRequestUrl.host === parsedScope.host
-	      && parsedRequestUrl.protocol === parsedScope.protocol) {
+	      // add delta headers
+	      let headers = cloneHeaders(clientRequest.headers);
 	      cachedEtag = cachedResponse.headers.get('ETag');
-	      init = {};
-	      init.headers = {
-	        'A-IM': 'googlediffjson',
-	        'If-None-Match': cachedEtag
+	      headers.set('A-IM', 'googlediffjson');
+	      headers.set('If-None-Match', cachedEtag);
+
+	      let init = {
+	        method: clientRequest.method,
+	        headers: headers,
+	        mode: clientRequest.mode,
+	        credentials: clientRequest.credentials,
+	        redirect: 'manual'
 	      };
+
+	      // can't create request with mode 'navigate', so we put 'same-origin'
+	      // since we know it's the same origin
+	      if (clientRequest.mode === 'navigate') {
+	        init.mode = 'same-origin';
+	      }
+
+	      return fetch(new Request(clientRequest.url, init));
+	    }
+	    else {
+	      return fetch(clientRequest);
 	    }
 
-	    return fetch(clientRequest, init);
-
+	  // patch response if delta
 	  }).then(serverResponse => {
 	    // server sent a patch (rather than the full file)
 	    if (serverResponse.status === 226 && serverResponse.headers.get('Delta-Base') ===  cachedEtag) {
@@ -155,6 +169,15 @@
 	      return cache.put(request, response.clone());
 	    });
 	  }
+	}
+
+	// returns whether the origins or the two urls are the same
+	function sameOrigin(url1, url2) {
+	  let parsedRequestUrl = getLocation(url1);
+	  let parsedCurrentUrl = getLocation(url2);
+
+	  return parsedRequestUrl.host === parsedCurrentUrl.host
+	    && parsedRequestUrl.protocol === parsedCurrentUrl.protocol;
 	}
 
 	// copies all headers into a new Headers
