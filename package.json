@@ -1,6 +1,6 @@
 {
   "name": "delta-cache-browser",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Service worker that provides worry-free support for HTTP delta caching",
   "main": "lib/sw_delta_cache.js",
   "directories": {

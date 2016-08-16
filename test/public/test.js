@@ -1,20 +1,5 @@
 describe('delta_cache_sw.js', function() {
 
-  describe('dynamic content', function() {
-    it('should return correct content', function(done) {
-      $.get('/dynamicContent').then((responseBody, _, xhrRequest) => {
-        expect(responseBody).to.be('version 1');
-        return $.get('/dynamicContent');
-      }).then((responseBody, _, xhrRequest) => {
-        expect(responseBody).to.be('version 2');
-        expect(xhrRequest.getResponseHeader('IM')).to.be('googlediffjson');
-        done();
-      }).catch(err => {
-        done(err);
-      });
-    });
-  });
-
   describe('static content', function() {
     it('should return correct content', function(done) {
       $.get('/staticContent').then((responseBody, _, xhrRequest) => {
@@ -49,6 +34,21 @@ describe('delta_cache_sw.js', function() {
         return $.get('/staticContent');
       }).then((responseBody, _, xhrRequest) => {
         expect(responseBody).to.be('single response');
+        done();
+      }).catch(err => {
+        done(err);
+      });
+    });
+  });
+
+  describe('dynamic content', function() {
+    it('should return correct content', function(done) {
+      $.get('/dynamicContent').then((responseBody, _, xhrRequest) => {
+        expect(responseBody).to.be('version 1');
+        return $.get('/dynamicContent');
+      }).then((responseBody, _, xhrRequest) => {
+        expect(responseBody).to.be('version 2');
+        expect(xhrRequest.getResponseHeader('IM')).to.be('googlediffjson');
         done();
       }).catch(err => {
         done(err);
