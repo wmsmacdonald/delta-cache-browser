@@ -19,7 +19,7 @@ if ('serviceWorker' in navigator) {
 
 If service workers are not supported, it will fallback to normal browser control.
 
-Works with any [RFC 3229](https://tools.ietf.org/html/rfc3229) compliant server. The encoding used for the deltas is `googlediffjson`, JSON stringified patches returned from the [google-diff-match-patch algorithm](https://code.google.com/p/google-diff-match-patch/wiki/API).
+Works with any [RFC 3229](https://tools.ietf.org/html/rfc3229) compliant server. The encoding used for the deltas is `vcdiff`, an [efficient and flexible binary delta encoding format](https://tools.ietf.org/html/rfc3229).
 
 Server Implementations:
 * [delta-cache-express](https://github.com/wmsmacdonald/delta-cache-express)
