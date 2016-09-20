@@ -27,18 +27,19 @@
   },
   "homepage": "https://github.com/wmsmacdonald/delta-cache-browser#readme",
   "devDependencies": {
-    "delta-cache-express": "^0.1.2",
+    "delta-cache": "^0.1.2",
     "express": "^4.14.0",
     "gulp": "^3.9.1",
     "gulp-rename": "^1.2.2",
     "gulp-uglify": "^1.5.4",
     "gulp-watch": "^4.3.9",
+    "gulp-webpack": "^1.5.0",
     "open": "0.0.5",
     "pump": "^1.0.1",
     "uglify-js-harmony": "^2.6.2",
-    "gulp-webpack": "^1.5.0"
+    "vcdiff-decoder": "^0.2.0"
   },
   "dependencies": {
-    "diff-match-patch": "^1.0.0"
+    "vcdiff-decoder": "^0.2.1"
   }
 }

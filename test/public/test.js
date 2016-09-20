@@ -48,7 +48,7 @@ describe('delta_cache_sw.js', function() {
         return $.get('/dynamicContent');
       }).then((responseBody, _, xhrRequest) => {
         expect(responseBody).to.be('version 2');
-        expect(xhrRequest.getResponseHeader('IM')).to.be('googlediffjson');
+        expect(xhrRequest.getResponseHeader('IM')).to.be('vcdiff');
         done();
       }).catch(err => {
         done(err);

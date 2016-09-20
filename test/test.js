@@ -4,10 +4,10 @@ const http = require('http');
 const fs = require('fs');
 
 const express = require('express');
-const DeltaCache = require('delta-cache-express');
+const createDeltaCache = require('delta-cache');
 const open = require('open');
 
-let deltaCache = new DeltaCache();
+let deltaCache = createDeltaCache();
 
 let app = express();
 app.use(express.static('test/public'));
@@ -24,15 +24,15 @@ app.get('/dynamicContent', (req, res, next) => {
   }
   console.log('GET', req.url);
   console.log(res.locals.responseBody);
-  next();
-}, deltaCache);
+  deltaCache(req, res, res.locals.responseBody);
+});
 
 app.get('/staticContent', (req, res, next) => {
   res.locals.responseBody = 'single response';
   console.log('GET', req.url);
   console.log(res.locals.responseBody);
-  next();
-}, deltaCache);
+  deltaCache(req, res, res.locals.responseBody);
+});
 
 app.get('/noDelta', (req, res) => {
   console.log('GET', req.url);
@@ -42,9 +42,7 @@ app.get('/noDelta', (req, res) => {
 
 app.get('/dynamicPage', (req, res, next) => {
   res.locals.responseBody = new Date().toString();
-  next();
-}, deltaCache, (req, res) => {
-  console.log(res.statusCode);
+  deltaCache(req, res, res.locals.responseBody);
 });
 
 
