@@ -24,3 +24,14 @@ Works with any [RFC 3229](https://tools.ietf.org/html/rfc3229) compliant server.
 Server Implementations:
 * [delta-cache-express](https://github.com/wmsmacdonald/delta-cache-express)
 * [delta-cache-node](https://github.com/wmsmacdonald/delta-cache-node)
+
+### How it Works
+All GET requests go through the service worker.
+
+![delta-cache](https://cloud.githubusercontent.com/assets/9937668/19878794/f39831b4-9fba-11e6-8e2c-033c1bb46d01.png)
+
+The first time the URL is requested, it will get the content from the server as usual. The service worker will then cache the response, so the next time the same URL is requested, it'll ask the server to use delta encoding. The server then sends the difference between the old and the new file. The service worker will use this delta to compute the new file using the cached version.
+
+Because only the changes are sent from the server, the file sizes are much smaller.
+
+Delta-Cache works well with text content that barely changes, such as server generated pages and web API endpoints.
