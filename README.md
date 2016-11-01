@@ -35,3 +35,9 @@ The first time the URL is requested, it will get the content from the server as 
 Because only the changes are sent from the server, the file sizes are much smaller.
 
 Delta-Cache works well with text content that barely changes, such as server generated pages and web API endpoints.
+
+### Testing
+```bash
+npm test
+```
+Will open a browser page. Reload to run the Mocha test suite.
