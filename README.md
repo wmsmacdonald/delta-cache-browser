@@ -16,6 +16,10 @@ if ('serviceWorker' in navigator) {
   });
 }
 ```
+![Chrome](https://cdnjs.cloudflare.com/ajax/libs/browser-logos/37.1.9/archive/chrome_12-48/chrome_12-48_48x48.png)
+![Firefox](https://cdnjs.cloudflare.com/ajax/libs/browser-logos/37.1.9/archive/firefox_1.5-3/firefox_1.5-3_48x48.png)
+
+Delta-Cache relies on services workers, which are currently only supported in Firefox and Chrome.
 
 If service workers are not supported, it will fallback to normal browser control.
 
