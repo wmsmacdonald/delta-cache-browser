@@ -44,4 +44,5 @@ Delta-Cache works well with text content that barely changes, such as server gen
 ```bash
 npm test
 ```
-Will open a browser page. Reload to run the Mocha test suite.
+This command will open a browser page. Reload the page so that the service worker can install and the Mocha test suite will run. The service worker is automatically removed when the mocha test finishes.
+Open chrome://serviceworker-internals/ in chrome to debug or remove the service worker.
