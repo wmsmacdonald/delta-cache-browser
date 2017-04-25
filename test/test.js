@@ -7,13 +7,13 @@ const express = require('express');
 const createDeltaCache = require('delta-cache');
 const open = require('open');
 
-let deltaCache = createDeltaCache();
+const deltaCache = createDeltaCache();
 
-let app = express();
+const app = express();
 app.use(express.static('test/public'));
 
 let tick = true;
-app.get('/dynamicContent', (req, res, next) => {
+app.get('/dynamicContent', (req, res) => {
   if (tick) {
     res.locals.responseBody = 'version 1';
     tick = false;
@@ -27,7 +27,7 @@ app.get('/dynamicContent', (req, res, next) => {
   deltaCache(req, res, res.locals.responseBody);
 });
 
-app.get('/staticContent', (req, res, next) => {
+app.get('/staticContent', (req, res) => {
   res.locals.responseBody = 'single response';
   console.log('GET', req.url);
   console.log(res.locals.responseBody);
@@ -40,7 +40,7 @@ app.get('/noDelta', (req, res) => {
   res.send('single response');
 });
 
-app.get('/dynamicPage', (req, res, next) => {
+app.get('/dynamicPage', (req, res) => {
   res.locals.responseBody = new Date().toString();
   deltaCache(req, res, res.locals.responseBody);
 });

@@ -42,122 +42,95 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	const fetchUtil = __webpack_require__(1);
-	const vcdiff = __webpack_require__(2);
-	let cache;
+	const fetchProxy = __webpack_require__(1);
+
+	const CACHE_NAME  = 'delta-cache-v1';
 
 	self.addEventListener('install', function(event) {
 	  self.skipWaiting();
 	});
-	self.addEventListener('activate', function(event) {
-	  // cleans cache and sets the cache as a global
 
+	let deltaCache;
+	self.addEventListener('activate', function(event) {
+	  // cleans cache 
 	  event.waitUntil(
-	    caches.delete('delta').then(() => caches.open('delta')).then(deltaCache => {
-	     cache = deltaCache;
+	    caches.delete(CACHE_NAME).then(() => caches.open(CACHE_NAME)).then(cache => {
+	      deltaCache = cache;
 	    })
 	  );
 	});
 
-
 	self.onfetch = function(event) {
-	  let clientRequest = event.request;
-
-	  let cachedEtag;
-	  let cachedResponse;
-	  let finalResponse;
-
-	  let cacheMatchP = cache.match(event.request);
-	  cacheMatchP.catch(err => console.log(err));
-
-
-	  let responseP = cacheMatchP.then(response => {
-	    cachedResponse = response;
-
-	    let isSameOrigin = sameOrigin(clientRequest.url, self.registration.scope);
-
-	    // request cached and has same origin
-	    if (isSameOrigin && cachedResponse !== undefined) {
-
-	      // add delta headers
-	      let headers = fetchUtil.cloneHeaders(clientRequest.headers);
-	      cachedEtag = cachedResponse.headers.get('ETag');
-	      headers.set('A-IM', 'vcdiff');
-	      headers.set('If-None-Match', cachedEtag);
-
-	      let init = {
-	        method: clientRequest.method,
-	        headers: headers,
-	        mode: clientRequest.mode,
-	        credentials: clientRequest.credentials,
-	        redirect: 'manual'
-	      };
-
-	      // can't create request with mode 'navigate', so we put 'same-origin'
-	      // since we know it's the same origin
-	      if (clientRequest.mode === 'navigate') {
-	        init.mode = 'same-origin';
-	      }
-
-	      return fetch(new Request(clientRequest.url, init));
-	    }
-	    else {
-	      return fetch(clientRequest);
-	    }
-
-	    // patch response if delta
-	  }).then(serverResponse => {
-	    // server sent a patch (rather than the full file)
-	    if (serverResponse.status === 226 && serverResponse.headers.get('Delta-Base') === cachedEtag) {
-	      // use the patch on the cached file to create an updated response
-	      return fetchUtil.patchResponse(serverResponse, cachedResponse);
-	    }
-	    // no change from cached version
-	    else if (serverResponse.status === 304) {
-	      return cachedResponse.text().then(text => {
-	        let headers = fetchUtil.cloneHeaders(serverResponse.headers);
-	        headers.set('Content-Type', cachedResponse.headers.get('Content-Type'));
-	        headers.delete('Content-Length');
-
-	        return new Response(text, {
-	          status: 200,
-	          statusText: 'OK',
-	          headers: headers,
-	          url: serverResponse.url
-	        });
-	      });
-
-	    }
-	    // normal non-cached response
-	    else {
-	      return Promise.resolve(serverResponse);
-	    }
-	  }).then(response => {
-	    finalResponse = response;
-	    return cacheIfHasEtag(cache, event.request, finalResponse.clone());
-	  }).then(() => {
-	    return finalResponse;
-	  }).catch(err => {
-	    console.log(err);
-	  });
-	  event.respondWith(responseP);
-	};
-
-	// cache the request/response if response contains the Delta-Version header
-	function cacheIfHasEtag(cache, request, response) {
-	  if (response.headers.has('ETag')) {
-	    return cache.delete(request).then(() => {
-	      return cache.put(request, response.clone());
-	    });
-	  }
+	  event.respondWith(fetchProxy(deltaCache, event.request));
 	}
 
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	const urlUtil = __webpack_require__(2);
+	const deltaHttp = __webpack_require__(3);
+	const fetchUtil = __webpack_require__(4);
+
+	function fetchProxy(cache, originalRequest) {
+	  // get cached response which matches the request
+	  const serverResponseP = cache.match(originalRequest).then(cachedResponse => {
+
+	    // request cached and has same origin
+	    if (urlUtil.isSameOrigin(originalRequest.url, self.registration.scope) && cachedResponse !== undefined) {
+	      return fetch(
+	        // create delta request with cached ETag
+	        deltaHttp.createDeltaRequest(originalRequest, cachedResponse.headers.get('ETag'))
+	      ).then(serverResponse => {
+
+	        // server sent a patch (rather than the full file)
+	        if (serverResponse.status === 226 && serverResponse.headers.get('Delta-Base') === cachedResponse.headers.get('ETag')) {
+	          // use the patch on the cached file to create an updated response
+	          return deltaHttp.patchResponse(serverResponse, cachedResponse);
+	        }
+	        // no change from cached version
+	        else if (serverResponse.status === 304) {
+	          return Promise.resolve(deltaHttp.convert304to200(cachedResponse, serverResonse.headers));
+	        }
+	        else {
+	          return Promise.reject('Server gave unrecongized status code: ' + serverResonse.status);
+	        }
+	      });
+	    }
+	    else {
+	      // normal request without delta caching
+	      return fetch(originalRequest);
+	    }
+	  })
+	  
+	  serverResponseP.then(response => {
+	    deltaHttp.cacheIfHasEtag(cache, originalRequest, response.clone());
+	  })
+
+	  return serverResponseP;
+	}
+
+	module.exports = fetchProxy;
+
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports) {
+
+	'use strict';
+
+
 	// returns whether the origins or the two urls are the same
-	function sameOrigin(url1, url2) {
+	function isSameOrigin(url1, url2) {
 	  let parsedRequestUrl = getLocation(url1);
 	  let parsedCurrentUrl = getLocation(url2);
 
@@ -178,13 +151,101 @@
 	    }
 	}
 
-/***/ },
-/* 1 */
-/***/ function(module, exports, __webpack_require__) {
+	module.exports = {
+		isSameOrigin,
+		getLocation
+	}
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-	const vcdiff = __webpack_require__(2);
 
+	const fetchUtil = __webpack_require__(4);
+	const vcdiff = __webpack_require__(5);
+
+	// cache the request/response if response contains the Delta-Version header
+	function cacheIfHasEtag(cache, request, response) {
+	  if (response.headers.has('ETag')) {
+	    return cache.delete(request).then(() => {
+	      return cache.put(request, response.clone());
+	    });
+	  }
+	  else {
+	    return Promise.resolve();
+	  }
+	}
+
+	function createDeltaRequest(originalRequest, cachedEtag) {
+	  const headers = fetchUtil.cloneHeaders(originalRequest.headers);
+	  headers.set('A-IM', 'vcdiff');
+	  headers.set('If-None-Match', cachedEtag);
+
+	  // return new request with delta headers
+	  return new Request(originalRequest.url, {
+	    method: originalRequest.method,
+	    headers: headers,
+	    // can't create request with mode 'navigate', so we put 'same-origin'
+	    // since we know it's the same origin
+	    mode: originalRequest.mode === 'navigate' ?
+	      'same-origin' : originalRequest.mode,
+	    credentials: originalRequest.credentials,
+	    redirect: 'manual'
+	  });
+	}
+
+	// create 200 response from 304 response
+	function convert304To200(response, newHeaders) {
+	  response.blob().then(blob => {
+	    const headers = fetchUtil.cloneHeaders(newHeaders);
+	    headers.set('Content-Type', cachedResponse.headers.get('Content-Type'));
+	    headers.delete('Content-Length');
+
+	    return new Response(blob, {
+	      status: 200,
+	      statusText: 'OK',
+	      headers,
+	      url: serverResponse.url
+	    });
+	  })
+	}
+
+	// takes a response with a patch in the body and applies the patch to the other response and returns a
+	// promise resolving to a new response
+	function patchResponse(patchResponse, responseToChange) {
+	  return Promise.all([patchResponse.arrayBuffer(), responseToChange.arrayBuffer()]).then(([deltaArrayBuffer, sourceArrayBuffer]) => {
+	    let delta = new Uint8Array(deltaArrayBuffer);
+	    let source = new Uint8Array(sourceArrayBuffer);
+
+	    let updated = vcdiff.decodeSync(delta, source);
+	    let headers = fetchUtil.cloneHeaders(patchResponse.headers);
+	    headers.set('Content-Type', responseToChange.headers.get('Content-Type'));
+	    headers.delete('Content-Length');
+
+	    return new Response(updated, {
+	      status: 200,
+	      statusText: 'OK',
+	      headers: headers,
+	      url: patchResponse.url
+	    });
+	  });
+	}
+
+	module.exports = {
+	  cacheIfHasEtag,
+	  createDeltaRequest,
+	  convert304To200,
+	  patchResponse
+	}
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports) {
+
+	'use strict';
 
 	// copies all headers into a new Headers
 	function cloneHeaders(headers) {
@@ -201,40 +262,20 @@
 	  }
 	}
 
-	// takes a response with a patch in the body and applies the patch to the other response and returns a
-	// promise resolving to a new response
-	function patchResponse(patchResponse, responseToChange) {
-	  return Promise.all([patchResponse.arrayBuffer(), responseToChange.arrayBuffer()]).then(([deltaArrayBuffer, sourceArrayBuffer]) => {
-	    let delta = new Uint8Array(deltaArrayBuffer);
-	    let source = new Uint8Array(sourceArrayBuffer);
-
-	    let updated = vcdiff.decodeSync(delta, source);
-	    let headers = cloneHeaders(patchResponse.headers);
-	    headers.set('Content-Type', responseToChange.headers.get('Content-Type'));
-	    headers.delete('Content-Length');
-
-	    return new Response(updated, {
-	      status: 200,
-	      statusText: 'OK',
-	      headers: headers,
-	      url: patchResponse.url
-	    });
-	  });
-	}
 
 	module.exports = {
 	  cloneHeaders,
-	  printHeaders,
-	  patchResponse
+	  printHeaders
 	};
 
-/***/ },
-/* 2 */
-/***/ function(module, exports, __webpack_require__) {
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-	const errors = __webpack_require__(3);
-	const VCDiff = __webpack_require__(4);
+	const errors = __webpack_require__(6);
+	const VCDiff = __webpack_require__(7);
 
 	/**
 	 *
@@ -258,9 +299,9 @@
 
 
 
-/***/ },
-/* 3 */
-/***/ function(module, exports) {
+/***/ }),
+/* 6 */
+/***/ (function(module, exports) {
 
 	'use strict';
 	/**
@@ -294,18 +335,18 @@
 
 	module.exports = CustomErrors(['NotImplemented', 'InvalidDelta']);
 
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	const errors = __webpack_require__(3);
-	const TypedArray = __webpack_require__(5);
-	const deserializeInteger = __webpack_require__(6);
-	const deserializeDelta = __webpack_require__(7);
-	const NearCache = __webpack_require__(10);
-	const SameCache = __webpack_require__(11);
+	const errors = __webpack_require__(6);
+	const TypedArray = __webpack_require__(8);
+	const deserializeInteger = __webpack_require__(9);
+	const deserializeDelta = __webpack_require__(10);
+	const NearCache = __webpack_require__(13);
+	const SameCache = __webpack_require__(14);
 
 	/**
 	 *
@@ -445,9 +486,9 @@
 
 	module.exports = VCDiff;
 
-/***/ },
-/* 5 */
-/***/ function(module, exports) {
+/***/ }),
+/* 8 */
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -559,9 +600,9 @@
 
 
 
-/***/ },
-/* 6 */
-/***/ function(module, exports) {
+/***/ }),
+/* 9 */
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -599,15 +640,15 @@
 
 	module.exports = integer;
 
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	const errors = __webpack_require__(3);
-	const deserializeInteger = __webpack_require__(6);
-	const tokenizeInstructions = __webpack_require__(8);
+	const errors = __webpack_require__(6);
+	const deserializeInteger = __webpack_require__(9);
+	const tokenizeInstructions = __webpack_require__(11);
 
 	function delta(delta, position) {
 
@@ -655,14 +696,14 @@
 
 
 
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	const instructions = __webpack_require__(9);
-	const deserializeInteger = __webpack_require__(6);
+	const instructions = __webpack_require__(12);
+	const deserializeInteger = __webpack_require__(9);
 
 	function tokenizeInstructions(instructionsBuffer) {
 	  let deserializedInstructions = [];
@@ -826,14 +867,14 @@
 
 	module.exports = tokenizeInstructions;
 
-/***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	const deserializeInteger = __webpack_require__(6);
-	const TypedArray = __webpack_require__(5);
+	const deserializeInteger = __webpack_require__(9);
+	const TypedArray = __webpack_require__(8);
 
 	function ADD(size) {
 	  this.size = size;
@@ -909,9 +950,9 @@
 
 	module.exports = instructions;
 
-/***/ },
-/* 10 */
-/***/ function(module, exports) {
+/***/ }),
+/* 13 */
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -935,9 +976,9 @@
 
 	module.exports = NearCache;
 
-/***/ },
-/* 11 */
-/***/ function(module, exports) {
+/***/ }),
+/* 14 */
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -959,5 +1000,5 @@
 
 	module.exports = SameCache;
 
-/***/ }
+/***/ })
 /******/ ]);

@@ -1,7 +1,8 @@
 'use strict';
 
-//mocha.checkLeaks();
 mocha.globals(['jQuery']);
+
+const CACHE_NAME = 'delta-cache-v1';
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('delta_cache_sw.js').then(function(registration) {
@@ -18,7 +19,7 @@ if ('serviceWorker' in navigator) {
           if (!success) {
             document.write('could not unregister service worker');
           }
-          return caches.delete('delta');
+          return caches.delete(CACHE_NAME);
         }).then(success => {
           if (!success) {
             document.write('could not delete delta cache');
@@ -28,6 +29,7 @@ if ('serviceWorker' in navigator) {
     }
 
   }).catch(function(err) {
+    console.log(err);
     document.write('service worker failed to register')
   });
 }
