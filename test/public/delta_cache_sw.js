@@ -51,13 +51,16 @@
 	const CACHE_NAME  = 'delta-cache-v1';
 
 	self.addEventListener('install', function(event) {
+	  // forces the waiting service worker to become the active service worker
 	  self.skipWaiting();
 	});
 
-	let deltaCache;
+	let deltaCache; // global so fetch event can access
+
 	self.addEventListener('activate', function(event) {
-	  // cleans cache 
 	  event.waitUntil(
+	    // deletes cache to prevent incompatiblity between requests (not necessary in production)
+	    // opens new cache before listening for fetch events
 	    caches.delete(CACHE_NAME).then(() => caches.open(CACHE_NAME)).then(cache => {
 	      deltaCache = cache;
 	    })
@@ -65,7 +68,11 @@
 	});
 
 	self.onfetch = function(event) {
-	  event.respondWith(fetchProxy(deltaCache, event.request));
+	  event.respondWith(
+	    // function is a proxy between the client and the server
+	    // returns a promise that contains a response
+	    fetchProxy(deltaCache, event.request)
+	  );
 	}
 
 
@@ -77,7 +84,7 @@
 	'use strict';
 
 	const urlUtil = __webpack_require__(2);
-	const deltaHttp = __webpack_require__(3);
+	const deltaFetch = __webpack_require__(3);
 	const fetchUtil = __webpack_require__(4);
 
 	function fetchProxy(cache, originalRequest) {
@@ -88,17 +95,17 @@
 	    if (urlUtil.isSameOrigin(originalRequest.url, self.registration.scope) && cachedResponse !== undefined) {
 	      return fetch(
 	        // create delta request with cached ETag
-	        deltaHttp.createDeltaRequest(originalRequest, cachedResponse.headers.get('ETag'))
+	        deltaFetch.createDeltaRequest(originalRequest, cachedResponse.headers.get('ETag'))
 	      ).then(serverResponse => {
 
 	        // server sent a patch (rather than the full file)
 	        if (serverResponse.status === 226 && serverResponse.headers.get('Delta-Base') === cachedResponse.headers.get('ETag')) {
 	          // use the patch on the cached file to create an updated response
-	          return deltaHttp.patchResponse(serverResponse, cachedResponse);
+	          return deltaFetch.patchResponse(serverResponse, cachedResponse);
 	        }
 	        // no change from cached version
 	        else if (serverResponse.status === 304) {
-	          return Promise.resolve(deltaHttp.convert304to200(cachedResponse, serverResonse.headers));
+	          return Promise.resolve(deltaFetch.convert304to200(cachedResponse, serverResonse.headers));
 	        }
 	        else {
 	          return Promise.reject('Server gave unrecongized status code: ' + serverResonse.status);
@@ -112,7 +119,7 @@
 	  })
 	  
 	  serverResponseP.then(response => {
-	    deltaHttp.cacheIfHasEtag(cache, originalRequest, response.clone());
+	    deltaFetch.cacheIfHasEtag(cache, originalRequest, response.clone());
 	  })
 
 	  return serverResponseP;
@@ -178,15 +185,19 @@
 	  }
 	}
 
+	// creates copy of request that contains the Etag of the cached response
+	// as well as other headers
 	function createDeltaRequest(originalRequest, cachedEtag) {
 	  const headers = fetchUtil.cloneHeaders(originalRequest.headers);
+
+	  // set VCDIFF encoding headers
 	  headers.set('A-IM', 'vcdiff');
 	  headers.set('If-None-Match', cachedEtag);
 
 	  // return new request with delta headers
 	  return new Request(originalRequest.url, {
 	    method: originalRequest.method,
-	    headers: headers,
+	    headers,
 	    // can't create request with mode 'navigate', so we put 'same-origin'
 	    // since we know it's the same origin
 	    mode: originalRequest.mode === 'navigate' ?
