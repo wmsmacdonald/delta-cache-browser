@@ -6,7 +6,6 @@ const CACHE_NAME = 'delta-cache-v1';
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('delta_cache_sw.js').then(function(registration) {
-    //window.serviceWorkerRegistration = registration;
 
     // document must reload for requests to go through service worker
     if (registration.active === null) {
