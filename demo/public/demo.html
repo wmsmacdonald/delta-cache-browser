@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Delta Cache Demo</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+          integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7"
+          crossorigin="anonymous">
+</head>
+<body>
+    <div id="page"></div>
+    <h2>Delta Cache Demo</h2>
+    <hr>
+    <p>In this demo, the browser forms a connection with a peer browser, if available, and downloads the video data directly from that peer. A signaling server negotiates the connections.</p>
+    <div id="columns">
+        <div class="column">
+            <div id="video-box">
+                <video controls muted></video>
+            </div>
+        </div>
+        <div class="column">
+            <h4 id="log-title">Log</h4>
+            <div id="log-box"></div>
+        </div>
+    </div>
+    <p>The signaling and content server is written in Node.js and uses WebSockets. The front end JavaScript takes advantage of the WebRTC APIs, particularly PeerConnection. It also uses the MediaSource API to append video chunks onto an URL object.</p>
+    <p><b>This demo works only on the latest version of Chrome.</b></p>
+    <p><a href="https://github.com/wmsmacdonald/video2p">Code on GitHub</a></p>
+    <p>Contact me at<a href="mailto:wmsmacdonald@gmail.com"> wmsmacdonald@gmail.com</a></p>
+    <script src="javascripts/controller.js"></script>
+    <script src="javascripts/video/load.js"></script>
+    <script src="javascripts/peer/signaling.js"></script>
+    <script src="javascripts/peer/seeder.js"></script>
+    <script src="javascripts/peer/leecher.js"></script>
+</body>
+</html>

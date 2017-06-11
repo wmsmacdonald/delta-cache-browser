@@ -1,7 +1,7 @@
 describe('delta_cache_sw.js', function() {
 
-  describe('static content', function() {
-    it('should return correct content', function(done) {
+  describe('static sample_text', function() {
+    it('should return correct sample_text', function(done) {
       $.get('/staticContent').then((responseBody, _, xhrRequest) => {
         expect(responseBody).to.be('single response');
         return $.get('/staticContent');
@@ -12,7 +12,7 @@ describe('delta_cache_sw.js', function() {
         done(err);
       });
     });
-    it("should return correct content cross origin", function(done) {
+    it("should return correct sample_text cross origin", function(done) {
       let url = 'https://www.googleapis.com/discovery/v1/apis?fields=';
       fetch('https://www.googleapis.com/discovery/v1/apis?fields=')
       .then(response => response.json()).then(message => {
@@ -27,8 +27,8 @@ describe('delta_cache_sw.js', function() {
     });
   });
 
-  describe('no delta content', function() {
-    it('should return correct content', function(done) {
+  describe('no delta sample_text', function() {
+    it('should return correct sample_text', function(done) {
       $.get('/staticContent').then((responseBody, _, xhrRequest) => {
         expect(responseBody).to.be('single response');
         return $.get('/staticContent');
@@ -41,8 +41,8 @@ describe('delta_cache_sw.js', function() {
     });
   });
 
-  describe('dynamic content', function() {
-    it('should return correct content', function(done) {
+  describe('dynamic sample_text', function() {
+    it('should return correct sample_text', function(done) {
       $.get('/dynamicContent').then((responseBody, _, xhrRequest) => {
         expect(responseBody).to.be('version 1');
         return $.get('/dynamicContent');

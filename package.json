@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "node test/test.js"
+    "test": "node test/test.js",
+    "run-demo": "node demo/server.js"
   },
   "repository": {
     "type": "git",
@@ -27,7 +28,7 @@
   },
   "homepage": "https://github.com/wmsmacdonald/delta-cache-browser#readme",
   "devDependencies": {
-    "delta-cache": "^0.1.2",
+    "delta-cache": "^0.2.0",
     "express": "^4.14.0",
     "gulp": "^3.9.1",
     "gulp-rename": "^1.2.2",
@@ -40,6 +41,7 @@
     "vcdiff-decoder": "^0.2.0"
   },
   "dependencies": {
-    "vcdiff-decoder": "^0.2.1"
+    "vcdiff-decoder": "^0.2.1",
+    "lorem-ipsum": "latest"
   }
 }

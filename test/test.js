@@ -24,14 +24,14 @@ app.get('/dynamicContent', (req, res) => {
   }
   console.log('GET', req.url);
   console.log(res.locals.responseBody);
-  deltaCache(req, res, res.locals.responseBody);
+  deltaCache.respondWithDeltaEncoding(req, res, res.locals.responseBody);
 });
 
 app.get('/staticContent', (req, res) => {
   res.locals.responseBody = 'single response';
   console.log('GET', req.url);
   console.log(res.locals.responseBody);
-  deltaCache(req, res, res.locals.responseBody);
+  deltaCache.respondWithDeltaEncoding(req, res, res.locals.responseBody);
 });
 
 app.get('/noDelta', (req, res) => {
@@ -42,7 +42,7 @@ app.get('/noDelta', (req, res) => {
 
 app.get('/dynamicPage', (req, res) => {
   res.locals.responseBody = new Date().toString();
-  deltaCache(req, res, res.locals.responseBody);
+  deltaCache.respondWithDeltaEncoding(req, res, res.locals.responseBody);
 });
 
 

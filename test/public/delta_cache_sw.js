@@ -58,7 +58,7 @@
 	self.addEventListener('activate', function(event) {
 	  // extend lifetime of event until cache is deleted
 	  event.waitUntil(
-	    // deletes cache to prevent incompatiblity between requests
+	    // deletes cache to prevent incompatibility between requests
 	    caches.delete(CACHE_NAME)
 	  );
 	});

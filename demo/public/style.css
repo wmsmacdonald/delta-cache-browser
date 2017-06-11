@@ -1,0 +1,43 @@
+#page {
+    margin: 0px auto 0 auto;
+    padding: 10px;
+    width: 800px;
+    text-align: left;
+}
+
+#columns {
+    width: 100%;
+    margin: 20px 0;
+}
+
+.column {
+    width: 50%;
+    display: inline-block;
+    vertical-align: top;
+}
+
+#video-box {
+    margin-top: 29px;
+    width: 330px;
+    height: 250px;
+}
+
+#log-title {
+    display: block;
+    margin: 5px 0 5px 0;
+    padding-left: 5px;
+    text-align: left;
+}
+
+#log-box {
+    border: 1px solid #d4dde9;
+    border-radius: 3px;
+    height: 250px;
+    padding: 10px;
+    overflow-y: scroll;
+    text-align: left;
+}
+
+a {
+    color: #00B7FF;
+}
