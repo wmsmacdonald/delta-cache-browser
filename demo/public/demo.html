@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Delta Cache Demo</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+          integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7"
+          crossorigin="anonymous">
+</head>
+<body>
+  <div id="page">
+    <h1>Delta Cache Demo</h1>
+    <br/>
+    <br/>
+    <button id="fetch-normal-button" class="btn btn-primary"/>Fetch dynamic content</button><br/>
+    <br/>
+    <button id="fetch-delta-button" class="btn btn-primary"/>Fetch dynamic content with delta encoding</button>
+    <div id="columns">
+      <div class="column">
+        <h3>Content</h3>
+        <div id="content"></div>
+      </div>
+      <div class="column">
+        <h3>Log</h3>
+        <div id="log-box"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="demo.js"></script>
+</body>
+</html>

@@ -58,7 +58,7 @@
 	self.addEventListener('activate', function(event) {
 	  // extend lifetime of event until cache is deleted
 	  event.waitUntil(
-	    // deletes cache to prevent incompatiblity between requests
+	    // deletes cache to prevent incompatibility between requests
 	    caches.delete(CACHE_NAME)
 	  );
 	});
@@ -117,11 +117,13 @@
 	  // server sent a patch (rather than the full file)
 	  if (serverResponse.status === 226 && serverResponse.headers.get('Delta-Base') === cachedResponse.headers.get('ETag')) {
 	    // use the patch on the cached file to create an updated response
-	    return deltaFetch.patchResponse(serverResponse, cachedResponse);
+	    const newResponse = deltaFetch.patchResponse(serverResponse, cachedResponse);
+	    return Promise.resolve(newResponse);
 	  }
 	  // no change from cached version
 	  else if (serverResponse.status === 304) {
-	    return Promise.resolve(deltaFetch.convert304to200(cachedResponse, serverResonse.headers));
+	    const newResponse = deltaFetch.convert304to200(cachedResponse, serverResonse.headers)
+	    return Promise.resolve(newResponse);
 	  }
 	  // no delta encoding
 	  else {
@@ -218,6 +220,8 @@
 	    headers.set('Content-Type', cachedResponse.headers.get('Content-Type'));
 	    headers.delete('Content-Length');
 
+	    header.set('X-Delta-Length', '0');
+
 	    return new Response(blob, {
 	      status: 200,
 	      statusText: 'OK',
@@ -227,17 +231,26 @@
 	  })
 	}
 
-	// takes a response with a patch in the body and applies the patch to the other response and returns a
-	// promise resolving to a new response
+	// takes a delta response and applies its patch to the other response
+	// returns a promise resolving to the new response
 	function patchResponse(patchResponse, responseToChange) {
 	  return Promise.all([patchResponse.arrayBuffer(), responseToChange.arrayBuffer()]).then(([deltaArrayBuffer, sourceArrayBuffer]) => {
-	    let delta = new Uint8Array(deltaArrayBuffer);
-	    let source = new Uint8Array(sourceArrayBuffer);
+	    const delta = new Uint8Array(deltaArrayBuffer);
+	    const source = new Uint8Array(sourceArrayBuffer);
 
-	    let updated = vcdiff.decodeSync(delta, source);
-	    let headers = fetchUtil.cloneHeaders(patchResponse.headers);
-	    headers.set('Content-Type', responseToChange.headers.get('Content-Type'));
+	    const updated = vcdiff.decodeSync(delta, source);
+	    const headers = fetchUtil.cloneHeaders(patchResponse.headers);
+
+	    if (responseToChange.headers.has('Content-Type')) {
+	      headers.set('Content-Type', responseToChange.headers.get('Content-Type'));
+	    }
+
+	    // discard delta headers
 	    headers.delete('Content-Length');
+	    headers.delete('Delta-Base');
+	    headers.delete('im');
+
+	    headers.set('X-Delta-Length', deltaArrayBuffer.byteLength.toString());
 
 	    return new Response(updated, {
 	      status: 200,

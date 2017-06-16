@@ -22,10 +22,10 @@ function compileClientJavascripts(cb) {
       }
     }),
     gulp.dest('dist/'),
-    gulp.dest('test/public/')
-    /*minifier({}, uglify),
+    gulp.dest('test/public/'),
+    gulp.dest('demo/public/'),
+    minifier({}, uglify),
     rename('delta_cache_sw.min.js'),
-    gulp.dest('dist/'),
-    gulp.dest('test/public/')*/
+    gulp.dest('dist/')
   ], cb);
 }

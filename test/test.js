@@ -12,26 +12,29 @@ const deltaCache = createDeltaCache();
 const app = express();
 app.use(express.static('test/public'));
 
-let tick = true;
+let first = true;
 app.get('/dynamicContent', (req, res) => {
-  if (tick) {
+  console.log('GET', req.url);
+  if (first) {
     res.locals.responseBody = 'version 1';
-    tick = false;
+    first = false;
+    console.log(res.locals.responseBody);
+    deltaCache.respondWithDeltaEncoding(req, res, res.locals.responseBody);
   }
   else {
     res.locals.responseBody = 'version 2';
-    tick = true;
+    console.log(res.locals.responseBody);
+    deltaCache.respondWithDeltaEncoding(req, res, res.locals.responseBody, () => {
+      process.exit()
+    });
   }
-  console.log('GET', req.url);
-  console.log(res.locals.responseBody);
-  deltaCache(req, res, res.locals.responseBody);
 });
 
 app.get('/staticContent', (req, res) => {
   res.locals.responseBody = 'single response';
   console.log('GET', req.url);
   console.log(res.locals.responseBody);
-  deltaCache(req, res, res.locals.responseBody);
+  deltaCache.respondWithDeltaEncoding(req, res, res.locals.responseBody);
 });
 
 app.get('/noDelta', (req, res) => {
@@ -40,12 +43,6 @@ app.get('/noDelta', (req, res) => {
   res.send('single response');
 });
 
-app.get('/dynamicPage', (req, res) => {
-  res.locals.responseBody = new Date().toString();
-  deltaCache(req, res, res.locals.responseBody);
-});
-
-
-let server = app.listen(8080, (err) => {
+app.listen(8080, (err) => {
   open('http://localhost:8080/test.html');
 });
