@@ -3,25 +3,21 @@ body, html {
   padding: 0;
   width: 100%;
 }
-
 #page {
     margin: 0px auto 0 auto;
     padding: 10px;
     width: 800px;
     text-align: left;
 }
-
 #columns {
     width: 100%;
     margin: 20px 0;
 }
-
 .column {
     width: 50%;
     float: left;
     vertical-align: top;
 }
-
 #log-box {
     border: 1px solid #d4dde9;
     border-radius: 3px;
@@ -30,7 +26,6 @@ body, html {
     text-align: left;
     overflow: scroll;
 }
-
 #content {
     border: 1px solid #d4dde9;
     border-radius: 3px;
@@ -40,7 +35,6 @@ body, html {
     text-align: left;
     margin: 0 10px 0 0;
 }
-
 a {
     color: #00B7FF;
 }

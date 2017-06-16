@@ -18,19 +18,6 @@ describe('delta_cache_sw.js', function() {
         done(err);
       });
     });
-    it("should return correct sample_text cross origin", function(done) {
-      let url = 'https://www.googleapis.com/discovery/v1/apis?fields=';
-      fetch('https://www.googleapis.com/discovery/v1/apis?fields=')
-      .then(response => response.json()).then(message => {
-        expect(message).to.be.empty();
-        return fetch('https://www.googleapis.com/discovery/v1/apis?fields=');
-      }).then(response => response.json()).then(message => {
-        expect(message).to.be.empty();
-        done();
-      }).catch(err => {
-        done(err);
-      });
-    });
   });
 
   describe('no delta sample_text', function() {
@@ -48,7 +35,7 @@ describe('delta_cache_sw.js', function() {
   });
 
   describe('dynamic sample_text', function() {
-    it('should return correct sample_text', function(done) {
+    it('should return correct sample_text, with X-Delta-Length header for second request', function(done) {
       return fetch('/dynamicContent').then(response => {
         expect(response.headers.has('X-Delta-Length')).to.be.false
         return response.text().then(responseBody => {
