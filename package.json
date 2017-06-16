@@ -41,7 +41,7 @@
     "vcdiff-decoder": "^0.2.0"
   },
   "dependencies": {
-    "vcdiff-decoder": "^0.2.1",
-    "lorem-ipsum": "latest"
+    "lorem-ipsum": "latest",
+    "vcdiff-decoder": "^0.2.1"
   }
 }

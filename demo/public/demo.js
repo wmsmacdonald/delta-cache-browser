@@ -1,34 +1,53 @@
 'use strict'
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('delta_cache_sw.js').then(function(registration) {
-    //window.serviceWorkerRegistration = registration;
+$(function() {
+  const log = str => $('#log-box').append(str).append('<br>').scrollTop(Number.MAX_SAFE_INTEGER)
 
-    // document must reload for requests to go through service worker
-    if (registration.active === null) {
-      document.write('reload to run tests (document must be controlled by the service worker)');
-    }
-    else {
-      mocha.run(() => {
-        // uninstall service worker so it can be installed clean next time
-        registration.unregister().then(success => {
-          if (!success) {
-            document.write('could not unregister service worker');
-          }
-          return caches.delete(CACHE_NAME);
-        }).then(success => {
-          if (!success) {
-            document.write('could not delete delta cache');
-          }
-        });
-      });
-    }
+  function countUtf8Bytes(s) {
+    var b = 0, i = 0, c
+    for(;c=s.charCodeAt(i++);b+=c>>11?3:c>>7?2:1);
+    return b
+  }
 
-  }).catch(function(err) {
-    console.log(err);
-    document.write('service worker failed to register')
+  function showResponse(response) {
+    return response.text().then(text => {
+      $('#content').html(text)
+
+      const actualSize = countUtf8Bytes(text)
+      
+      // was delta encoded in service worker
+      if (response.headers.has('X-Delta-Length')) {
+        const deltaSize = parseInt(response.headers.get('X-Delta-Length'))
+        log(`Fetched file using delta encoding - ${deltaSize} bytes received instead of ${actualSize} bytes`)
+      }
+      else {
+        log(`Fetched file without delta encoding - ${actualSize} bytes received`)
+      }
+    })
+  }
+
+  $('#fetch-normal-button').click(function() {
+    fetch('/normalContent').then(showResponse);
   });
-}
-else {
-  document.write('service worker not supported');
-}
+
+  $('#fetch-delta-button').click(function() {
+    fetch('/deltaEncodedContent').then(showResponse);
+  });
+
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('delta_cache_sw.js').then(function(registration) {
+
+      // document must reload for requests to go through service worker
+      if (registration.active === null) {
+        window.location.reload()
+      }
+
+    }).catch(err => alert('Service worker failed to register: ' + err))
+  }
+  else {
+    alert('Service worker not supported, please use Chrome')
+  }
+})
+
+

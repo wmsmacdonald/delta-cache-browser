@@ -1,3 +1,9 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
 #page {
     margin: 0px auto 0 auto;
     padding: 10px;
@@ -12,21 +18,8 @@
 
 .column {
     width: 50%;
-    display: inline-block;
+    float: left;
     vertical-align: top;
-}
-
-#video-box {
-    margin-top: 29px;
-    width: 330px;
-    height: 250px;
-}
-
-#log-title {
-    display: block;
-    margin: 5px 0 5px 0;
-    padding-left: 5px;
-    text-align: left;
 }
 
 #log-box {
@@ -34,8 +27,18 @@
     border-radius: 3px;
     height: 250px;
     padding: 10px;
+    text-align: left;
+    overflow: scroll;
+}
+
+#content {
+    border: 1px solid #d4dde9;
+    border-radius: 3px;
+    height: 250px;
+    padding: 10px;
     overflow-y: scroll;
     text-align: left;
+    margin: 0 10px 0 0;
 }
 
 a {

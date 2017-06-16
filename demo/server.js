@@ -14,7 +14,15 @@ app.use(express.static(__dirname + '/public'));
 
 const text = fs.readFileSync(__dirname + '/sample_text/loremipsum.html')
 
-app.get('/dynamicContent', (req, res) => {
+// no delta encoding
+app.get('/normalContent', (req, res) => {
+  const time = new Buffer(new Date().toTimeString())
+  const dynamicText = Buffer.concat([time, text])
+  res.end(dynamicText)
+});
+
+// use delta encoding (when possible)
+app.get('/deltaEncodedContent', (req, res) => {
   const time = new Buffer(new Date().toTimeString())
   const dynamicText = Buffer.concat([time, text])
   deltaCache.respondWithDeltaEncoding(req, res, dynamicText);

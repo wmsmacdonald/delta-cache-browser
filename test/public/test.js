@@ -1,13 +1,19 @@
 describe('delta_cache_sw.js', function() {
 
   describe('static sample_text', function() {
-    it('should return correct sample_text', function(done) {
-      $.get('/staticContent').then((responseBody, _, xhrRequest) => {
-        expect(responseBody).to.be('single response');
-        return $.get('/staticContent');
-      }).then((responseBody, _, xhrRequest) => {
-        expect(responseBody).to.be('single response');
-        done();
+    it('should return correct sample_text, without X-Delta-Length header', function(done) {
+      fetch('/staticContent').then(response => {
+        expect(response.headers.has('X-Delta-Length')).to.be.false
+        return response.text().then(responseBody => {
+          expect(responseBody).to.be('single response');
+          return fetch('/staticContent');
+        });
+      }).then(response => {
+        expect(response.headers.has('X-Delta-Length')).to.be.false
+        response.text().then(responseBody => {
+          expect(responseBody).to.be('single response');
+          done();
+        });
       }).catch(err => {
         done(err);
       });
@@ -43,13 +49,18 @@ describe('delta_cache_sw.js', function() {
 
   describe('dynamic sample_text', function() {
     it('should return correct sample_text', function(done) {
-      $.get('/dynamicContent').then((responseBody, _, xhrRequest) => {
-        expect(responseBody).to.be('version 1');
-        return $.get('/dynamicContent');
-      }).then((responseBody, _, xhrRequest) => {
-        expect(responseBody).to.be('version 2');
-        expect(xhrRequest.getResponseHeader('IM')).to.be('vcdiff');
-        done();
+      return fetch('/dynamicContent').then(response => {
+        expect(response.headers.has('X-Delta-Length')).to.be.false
+        return response.text().then(responseBody => {
+          expect(responseBody).to.be('version 1');
+          return fetch('/dynamicContent')
+        });
+      }).then(response => {
+        expect(response.headers.get('X-Delta-Length')).to.equal('24')
+        return response.text().then(responseBody => {
+          expect(responseBody).to.be('version 2');
+          done();
+        });
       }).catch(err => {
         done(err);
       });
